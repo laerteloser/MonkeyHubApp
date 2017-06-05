@@ -1,96 +1,55 @@
-﻿using System.Collections.Generic;
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.Threading.Tasks;
-using Xamarin.Forms;
-using System.Net.Http;
-using System.Net.Http.Headers;
-using Newtonsoft.Json;
-using System.IO;
 using MonkeyHubApp.Models;
-using System;
 using MonkeyHubApp.Services;
+using Xamarin.Forms;
 
 namespace MonkeyHubApp.ViewModels
 {
     public class MainViewModel : BaseViewModel
-    {   
-        private string _searchTerm;
-
-        public string SearchTerm
-        {
-            get { return _searchTerm; }
-            set
-            {
-                if (SetProperty(ref _searchTerm, value));
-                    SearchCommand.ChangeCanExecute();
-            }
-        }
-
-        public ObservableCollection<Tag> Resultados { get; }
-
-        public Command SearchCommand { get; }
+    {
+        private readonly IMonkeyHubApiService _monkeyHubApiService;
+        public ObservableCollection<Tag> Tags { get; }
 
         public Command AboutCommand { get; }
 
-        public Command<Tag> ShowCategoriaCommand { get; }
+        public Command SearchCommand { get; }
 
-        private readonly IMonkeyHubApiService _monkeyHubApiService;
+        public Command<Tag> ShowCategoriaCommand { get; }
 
         public MainViewModel(IMonkeyHubApiService monkeyHubApiService)
         {
             _monkeyHubApiService = monkeyHubApiService;
-
-            SearchCommand = new Command(ExecuteSearchCommand, CanExecuteSearchCommand);
-
+            Tags = new ObservableCollection<Tag>();
             AboutCommand = new Command(ExecuteAboutCommand);
-
+            SearchCommand = new Command(ExecuteSearchCommand);
             ShowCategoriaCommand = new Command<Tag>(ExecuteShowCategoriaCommand);
+        }
 
-            Resultados = new ObservableCollection<Tag>();
+        private async void ExecuteSearchCommand()
+        {
+            await PushAsync<SearchViewModel>();
         }
 
         private async void ExecuteShowCategoriaCommand(Tag tag)
         {
-            await PushAsync<CategoriaViewModel>(_monkeyHubApiService, tag);
+            await PushAsync<CategoriaViewModel>(tag);
         }
 
-        async void ExecuteAboutCommand()
+        private async void ExecuteAboutCommand()
         {
             await PushAsync<AboutViewModel>();
         }
 
-        async void ExecuteSearchCommand()
+        public async Task LoadAsync()
         {
-            //await Task.Delay(2000);
+            var tags = await _monkeyHubApiService.GetTagsAsync();
 
-            bool resposta = await App.Current.MainPage.DisplayAlert("MonkeyHubApp", $"Você pesquisou por '{SearchTerm}'?", "Sim", "Não");
-
-            if (resposta)
+            Tags.Clear();
+            foreach (var tag in tags)
             {
-                await App.Current.MainPage.DisplayAlert("MonkeyHubApp", "Obrigado!", "OK");     
-
-                var tagsRetornadasDoServico = await _monkeyHubApiService.GetTagAsync();
-
-                Resultados.Clear();
-
-                if (tagsRetornadasDoServico != null)
-                {
-                    foreach (var tag in tagsRetornadasDoServico)
-                    {
-                        Resultados.Add(tag);
-                    }
-                }
+                Tags.Add(tag);
             }
-            else
-            {
-                await App.Current.MainPage.DisplayAlert("MonkeyHubApp", "De Nada!", "OK");
-                Resultados.Clear();
-            }
-        }
-
-        bool CanExecuteSearchCommand()
-        {
-            return string.IsNullOrWhiteSpace(SearchTerm) == false;
         }
     }
 }

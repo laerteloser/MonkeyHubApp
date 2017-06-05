@@ -4,11 +4,11 @@ namespace MonkeyHubApp.ViewModels
 {
     public class ContentWebViewModel : BaseViewModel
     {
-        public Content Content { get; }
+        public Content ContentWeb { get; }
 
         public ContentWebViewModel(Content content)
         {
-            Content = content;
+            ContentWeb = content;
         }
     }
 }

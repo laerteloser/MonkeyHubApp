@@ -1,11 +1,11 @@
-﻿using MonkeyHubApp.Models;
-using Newtonsoft.Json;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
-using System;
+using MonkeyHubApp.Models;
+using Newtonsoft.Json;
 using Xamarin.Forms;
 
 [assembly: Dependency(typeof(MonkeyHubApp.Services.MonkeyHubApiService))]
@@ -15,7 +15,7 @@ namespace MonkeyHubApp.Services
     {
         private const string BaseUrl = "https://monkey-hub-api.azurewebsites.net/api/";
 
-        public async Task<List<Tag>> GetTagAsync()
+        public async Task<List<Tag>> GetTagsAsync()
         {
             var httpClient = new HttpClient();
             httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
@@ -28,7 +28,7 @@ namespace MonkeyHubApp.Services
                 {
                     return JsonConvert.DeserializeObject<List<Tag>>(
                         await new StreamReader(responseStream)
-                        .ReadToEndAsync().ConfigureAwait(false));
+                            .ReadToEndAsync().ConfigureAwait(false));
                 }
             }
 
